@@ -2,7 +2,8 @@ import {combineReducers} from 'redux-immutable';
 import {
     INITIAL_STATE,
     createEvent,
-    createVenue
+    createVenue,
+    createOrder
 } from './core';
 
 function events(eventState = INITIAL_STATE, action) {
@@ -45,6 +46,8 @@ function tickets(ticketState = INITIAL_STATE, action) {
 function orders(orderState = INITIAL_STATE, action) {
     switch (action.type) {
         case 'CREATE_ORDER':
+            console.log("Creating order");
+            return createOrder(orderState, action.price, action.orderType, action.user);
         case 'READ_ORDER':
         case 'UPDATE_ORDER':
         case 'DELETE_ORDER':

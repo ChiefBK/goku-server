@@ -27,3 +27,12 @@ export function createVenue(state, venue){
         address
     })
 }
+
+export function createOrder(orderState, price, orderType, user) {
+    return orderState.push({
+        id: generateId(),
+        price,
+        orderType,
+        user
+    });
+}
