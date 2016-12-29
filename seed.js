@@ -24,53 +24,61 @@ export function generateInitialState() {
     let orders = [];
     let users = [];
 
-    for (let i = 0; i < numOfVenues; i++) {
-        venues.push({
-            id: generateId(),
-            name: venueNames[i % venueNames.length],
-            address: venueAddresses[i % venueAddresses.length]
-        });
-    }
+    // for (let i = 0; i < numOfUsers; i++) {
+    //     users.push({
+    //         id: generateId(),
+    //         firstName: userFirstNames[i % userFirstNames],
+    //         lastName: userLastNames[i % userLastNames],
+    //         email: userEmails[i % userEmails]
+    //     })
+    // }
+    //
+    // for (let i = 0; i < numOfVenues; i++) {
+    //     venues.push({
+    //         id: generateId(),
+    //         name: venueNames[i % venueNames.length],
+    //         address: venueAddresses[i % venueAddresses.length]
+    //     });
+    // }
+    //
+    // for (let i = 0; i < numOfEvents; i++) {
+    //     // let ticket_ids = getIds(tickets.slice(i * numOfTicketsPerEvent, (i * numOfTicketsPerEvent) + numOfTicketsPerEvent));
+    //
+    //     events.push({
+    //         id: generateId(),
+    //         name: eventNames[i % eventNames.length],
+    //         venue: venues[i % venues.length].id
+    //     });
+    // }
+    //
+    // for (let i = 0; i < numOfEvents * numOfTicketsPerEvent; i++) {
+    //     // let order_ids = getIds(orders.slice(i * numOfOrdersPerTicket, (i * numOfOrdersPerTicket) + numOfOrdersPerTicket));
+    //
+    //     tickets.push({
+    //         id: generateId(),
+    //         ticketType: i % 2 == 0 ? 'vip' : 'general', //TODO - if numOfTicketPerEvent changes make sure ticket types are split amongst events evenly
+    //         event: events[i % events.length].id
+    //     });
+    // }
+    //
+    // for (let i = 0; i < (numOfEvents * numOfTicketsPerEvent * numOfOrdersPerTicket); i++) {
+    //     const order_type = randomBuyOrSell();
+    //
+    //     orders.push({
+    //         id: generateId(),
+    //         orderType: order_type,
+    //         price: order_type == "buy" ? randomFloat(minPrice, medianPrice) : randomFloat(medianPrice, maxPrice),
+    //         ticket: tickets[i % tickets.length].id,
+    //         user: users[i % users.length].id
+    //     });
+    // }
 
-    for (let i = 0; i < (numOfEvents * numOfTicketsPerEvent * numOfOrdersPerTicket); i++) {
-        const order_type = randomBuyOrSell();
-
-        orders.push({
-            id: generateId(),
-            order_type: order_type,
-            price: order_type == "BUY" ? randomFloat(minPrice, medianPrice) : randomFloat(medianPrice, maxPrice)
-        });
-    }
-
-    for (let i = 0; i < numOfEvents * numOfTicketsPerEvent; i++) {
-        let order_ids = getIds(orders.slice(i * numOfOrdersPerTicket, (i * numOfOrdersPerTicket) + numOfOrdersPerTicket));
-
-        tickets.push({
-            id: generateId(),
-            ticket_type: i % 2 == 0 ? 'VIP' : 'GENERAL', //TODO - if numOfTicketPerEvent changes make sure ticket types are split amongst events evenly
-            orders: order_ids
-        });
-    }
-
-    for (let i = 0; i < numOfEvents; i++) {
-        let ticket_ids = getIds(tickets.slice(i * numOfTicketsPerEvent, (i * numOfTicketsPerEvent) + numOfTicketsPerEvent));
-
-        events.push({
-            id: generateId(),
-            name: eventNames[i % eventNames.length],
-            venue: venues[i % venues.length].id,
-            tickets: ticket_ids
-        });
-    }
-
-    for(let i = 0; i < numOfUsers; i++){
-        users.push({
-            id: generateId(),
-            firstName: userFirstNames[i % userFirstNames],
-            lastName: userLastNames[i % userLastNames],
-            email: userEmails[i % userEmails]
-        })
-    }
+    events.push({
+        id: 'abcdefg',
+        model: 'EVENT',
+        name: 'test event',
+        venue: 'House of Blues'
+    });
 
     return fromJS({
         venues: venues,
@@ -78,7 +86,9 @@ export function generateInitialState() {
         tickets: tickets,
         events: events,
         users: users
-    })
+    });
+
+    // return fromJS({});
 }
 
 export function generateId() {
@@ -104,9 +114,9 @@ function randomBuyOrSell() {
     let rand = Math.random();
 
     if (rand < 0.5) {
-        return "SELL";
+        return "sell";
     }
     else {
-        return "BUY";
+        return "buy";
     }
 }

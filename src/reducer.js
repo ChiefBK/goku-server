@@ -9,7 +9,7 @@ import {
 function events(eventState = INITIAL_STATE, action) {
     switch (action.type) {
         case 'CREATE_EVENT':
-            return createEvent(eventState, action.event);
+            return createEvent(eventState, action.payload);
         case 'READ_EVENT':
         case 'UPDATE_EVENT':
         case 'DELETE_EVENT':
@@ -22,7 +22,7 @@ function events(eventState = INITIAL_STATE, action) {
 function venues(venueState = INITIAL_STATE, action) {
     switch (action.type) {
         case 'CREATE_VENUE':
-            return createVenue(venueState, action.venue);
+            return createVenue(venueState, action.payload);
         case 'READ_VENUE':
         case 'UPDATE_VENUE':
         case 'DELETE_VENUE':
@@ -46,8 +46,7 @@ function tickets(ticketState = INITIAL_STATE, action) {
 function orders(orderState = INITIAL_STATE, action) {
     switch (action.type) {
         case 'CREATE_ORDER':
-            console.log("Creating order");
-            return createOrder(orderState, action.price, action.orderType, action.user);
+            return createOrder(orderState, action.payload);
         case 'READ_ORDER':
         case 'UPDATE_ORDER':
         case 'DELETE_ORDER':
