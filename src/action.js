@@ -1,6 +1,8 @@
 import {handleError} from './error';
 import {retrieveQuery} from './core';
 import {List, toJS} from 'immutable';
+import winston from 'winston';
+import {pretty} from './util';
 
 function receivedRequest(request) {
     return {
@@ -52,21 +54,30 @@ export function handleCreate(socket, request){
 
 export function handleRead(socket, request) {
     return function (dispatch, getState) {
-        console.log("handling read");
-        console.log(request);
-        let payload = List();
 
-        //TODO - actually dispatch event for request (read)
-        // dispatch(processQuery(query))
-
-        payload = payload.merge(retrieveQuery(request.query, getState()));
-
-        console.log("sending back payload: " + payload);
-
-        socket.emit('payload', {
-            id: request.id,
-            payload: payload.toJS()
+        retrieveQuery(request.query, getState()).then((payload) => {
+            winston.debug(`Sending payload: ${pretty(payload.toJS())}`);
+            socket.emit('payload', {
+                id: request.id,
+                payload: payload.toJS()
+            });
         });
+
+        // console.log("handling read");
+        // console.log(request);
+        // let payload = List();
+        //
+        // //TODO - actually dispatch event for request (read)
+        // // dispatch(processQuery(query))
+        //
+        // payload = payload.merge(retrieveQuery(request.query, getState()));
+        //
+        // console.log("sending back payload: " + payload);
+        //
+        // socket.emit('payload', {
+        //     id: request.id,
+        //     payload: payload.toJS()
+        // });
 
     };
 }

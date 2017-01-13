@@ -1,4 +1,5 @@
 import {fromJS} from 'immutable';
+import winston from 'winston';
 
 const numOfEvents = 5;
 const numOfVenues = 3;
@@ -72,13 +73,49 @@ export function generateInitialState() {
     //         user: users[i % users.length].id
     //     });
     // }
+    let venueId = generateId();
+    const eventId = 'abcdefg';
+    const ticketId = 'hijklmn';
 
     events.push({
-        id: 'abcdefg',
-        model: 'EVENT',
+        id: eventId,
+        model: 'event',
         name: 'test event',
-        venue: 'House of Blues'
+        startDateTime: 1456970400000,
+        endDateTime: 1456992000000,
+        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+        venueID: venueId
     });
+
+    venues.push({
+        id: venueId,
+        model: 'venue',
+        name: 'The Aragon Ballroom',
+        address: '1106 W Lawrence Ave, Chicago, IL 60640',
+        phoneNumber: 2241239876
+    });
+
+    tickets.push({
+        id: ticketId,
+        model: 'ticket',
+        ticketType: 'general',
+        eventID: eventId
+    });
+
+    for(let i = 0; i < 20; i++){
+        const orderType = randomBuyOrSell();
+
+        orders.push({
+            id: generateId(),
+            model: 'order',
+            orderType: orderType,
+            price: orderType == "buy" ? randomFloat(minPrice, medianPrice) : randomFloat(medianPrice, maxPrice),
+            userID: generateId(),
+            ticketID: ticketId
+        });
+    }
+
+    winston.debug('Generated seed');
 
     return fromJS({
         venues: venues,

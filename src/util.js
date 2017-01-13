@@ -30,3 +30,7 @@ export function isValidAction(action) {
 
     return true;
 }
+
+export function pretty(obj){
+    return JSON.stringify(obj, null, 2)
+}
