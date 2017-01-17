@@ -4,6 +4,7 @@ import http from 'http';
 import Express from 'express';
 import Morgan from 'morgan';
 import winston from 'winston';
+import {fromJS} from 'immutable';
 
 import {handleRead, handleCreate} from './action';
 import {readOrders} from './core';
@@ -36,6 +37,7 @@ export function startServer(store, client_dist) {
             // io.emit('state', store.getState().toJS());
         });
 
+        //TODO - convert request to immutable map
         io.on('connection', (socket) => {
             winston.debug(`New connection on socket: ${socket.id}`);
 
@@ -49,8 +51,7 @@ export function startServer(store, client_dist) {
 
             socket.on('create', (request) => {
                 winston.debug(`Received create event: ${pretty(request)}`);
-
-                store.dispatch(handleCreate(socket, request));
+                store.dispatch(handleCreate(io, socket, fromJS(request)));
             });
 
             socket.on('update', (request) => {

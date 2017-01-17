@@ -14,44 +14,6 @@ function indexById(iterable) {
     );
 }
 
-export function createEvent(eventState, payload) {
-    return eventState.push({
-        id: generateId(),
-        name: payload.name,
-        venue: payload.venue
-    });
-}
-
-export function createVenue(venueState, payload) {
-    return venueState.push({
-        id: generateId(),
-        name: payload.name,
-        address: payload.address
-    })
-}
-
-export function createOrder(orderState, payload) {
-    return orderState.push({
-        id: generateId(),
-        price: payload.price,
-        orderType: payload.orderType,
-        user: payload.user
-    });
-}
-
-export function readOrders(state, ticket) {
-    console.log("state");
-    console.log(state.get('orders').toJS());
-    console.log("ticket");
-    console.log(ticket);
-    const orders = state.get('orders');
-
-    return orders.filter((order) => {
-        console.log(order.get('ticket'));
-        return order.get('ticket') == ticket;
-    });
-}
-
 function readFromState(query, state) {
     winston.debug(`Reading from state with query ${pretty(query)}`);
     return state.get(pluralize(query.model)).filter((item) => {
@@ -75,14 +37,6 @@ function getById(id, model, state) {
     const modelMap = indexById(state.get(pluralize(model)));
 
     return modelMap.get(id);
-}
-
-function isKeyAnId(key) {
-    return new Promise((resolve, reject) => {
-        if (key.includes('ID')) {
-            resolve({key: key})
-        }
-    });
 }
 
 function getInnerObjects(results, state, levels = 0, queue = []) {

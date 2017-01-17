@@ -115,6 +115,7 @@ export function generateInitialState() {
         });
     }
 
+    winston.debug(typeof(randomFloat(1000, 1200)));
     winston.debug('Generated seed');
 
     return fromJS({
@@ -144,7 +145,7 @@ function getIds(array) {
 
 // Returns a random float in between min & max
 function randomFloat(min, max) {
-    return (min + (Math.random() * (max - min))).toFixed(2);
+    return parseFloat((min + (Math.random() * (max - min))).toFixed(2));
 }
 
 function randomBuyOrSell() {
