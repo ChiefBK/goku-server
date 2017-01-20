@@ -19,6 +19,7 @@ function events(eventState = INITIAL_STATE, action) {
 function venues(venueState = INITIAL_STATE, action) {
     switch (action.type) {
         case 'CREATE_VENUE':
+            return venueState.push(action.item);
         case 'READ_VENUE':
         case 'UPDATE_VENUE':
         case 'DELETE_VENUE':
@@ -31,6 +32,7 @@ function venues(venueState = INITIAL_STATE, action) {
 function tickets(ticketState = INITIAL_STATE, action) {
     switch (action.type) {
         case 'CREATE_TICKET':
+            return ticketState.push(action.item);
         case 'READ_TICKET':
         case 'UPDATE_TICKET':
         case 'DELETE_TICKET':
