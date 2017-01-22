@@ -6,7 +6,7 @@ import {pretty} from './util';
 
 function createItem(item) {
     return {
-        type: 'CREATE_' + item.get('model').toUpperCase(),
+        type: 'CREATE_ITEM',
         item
     }
 }
@@ -19,12 +19,12 @@ export function handleCreate(io, socket, request){
     }
 }
 
-export function handleRead(socket, request) {
+export function handleRead(socket, event) {
     return function (dispatch, getState) {
-        retrieveQuery(request.query, getState()).then((payload) => {
+        retrieveQuery(event.query, getState()).then((payload) => {
             winston.debug(`Sending payload: ${pretty(payload.toJS())}`);
             socket.emit('payload', {
-                id: request.id,
+                id: event.id,
                 payload: payload.toJS()
             });
         });

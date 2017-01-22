@@ -5,7 +5,7 @@ import Promise from 'bluebird';
 import winston from 'winston';
 import {pretty} from './util';
 
-export const INITIAL_STATE = List();
+export const INITIAL_STATE_MAP = Map();
 
 function indexById(iterable) {
     return iterable.reduce(
@@ -22,9 +22,12 @@ function readFromState(query, state) {
 
         for (let key in query['properties']) {
             const attributeRegEx = new RegExp(query['properties'][key]); // Create regex expression with value of property
-            if (!(item.get(key) != null && attributeRegEx.test(item.get(key)))) { // If item does not have key or does not match regex
+            if (item.get(key) == null || !attributeRegEx.test(item.get(key))) { // If item does not have key or does not match regex
                 isMatching = false;
                 break;
+            }
+            else if(key == 'hash' && item.get(key) == query['properties'][key]) {
+
             }
         }
 
@@ -32,11 +35,30 @@ function readFromState(query, state) {
     });
 }
 
-function getById(id, model, state) {
-    winston.debug("Getting by id: " + id + " for model: " + model);
-    const modelMap = indexById(state.get(pluralize(model)));
+function getById(id, state) {
+    winston.debug("Getting by id: " + id);
+    const item = state.getIn(['items', id]);
+    if (item == null){
+        return List();
+    }
+    else{
+        return List([item]);
+    }
 
-    return modelMap.get(id);
+    return state.getIn(['items', id]);
+}
+
+function getByIdAndHash(id, hash, state){
+    winston.debug("Getting by id: " + id + " and hash: " + hash);
+    const item = state.getIn(['items', id]);
+
+    if (item == null || item.get('hash') == hash){
+        return List();
+    }
+    else{
+        return List([item]);
+    }
+
 }
 
 function getInnerObjects(results, state, levels = 0, queue = []) {
@@ -63,18 +85,38 @@ function getInnerObjects(results, state, levels = 0, queue = []) {
         return results;
     }
 
-    let newResults = results.push(getById(queue[0]['id'], queue[0]['model'], state));
+    winston.silly(`Results ${pretty(results.toJS())}`);
+    let newResults = results.push(getById(queue[0]['id'], state).first());
+    winston.silly(`New Results ${pretty(newResults.toJS())}`);
     queue.shift();
     return getInnerObjects(newResults, state, --levels, queue);
 }
 
 export function retrieveQuery(query, state) {
     return new Promise((resolve, reject) => {
-        let firstRoundResults = readFromState(query, state);
-        winston.debug(`results after first round had length of ${firstRoundResults.size}`);
+        let firstRoundResults;
+        if (isGetByIdQuery(query)){
+            firstRoundResults = getById(query.properties.id, state);
+        }
+        else if (isGetByIdAndHashQuery(query)) {
+            firstRoundResults = getByIdAndHash(query.properties.id, query.properties.hash, state);
+        }
+        else{
+            firstRoundResults = readFromState(query, state);
+        }
+        winston.silly(`results after first round had length of ${firstRoundResults.size}`);
+        winston.silly(`first round results: ${pretty(firstRoundResults.toJS())}`);
 
         let allResults = getInnerObjects(firstRoundResults, state, 'levels' in query ? query.levels : undefined);
 
         resolve(allResults);
     });
+}
+
+function isGetByIdQuery(query){
+    return 'id' in query['properties'] && Object.keys(query['properties']).length == 1
+}
+
+function isGetByIdAndHashQuery(query) {
+    return 'id' in query['properties'] && 'hash' in query['properties'] && Object.keys(query['properties']).length == 2
 }

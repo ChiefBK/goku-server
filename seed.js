@@ -24,6 +24,8 @@ export function generateInitialState() {
     let tickets = [];
     let orders = [];
     let users = [];
+    let items = {};
+    let groups = {};
 
     // for (let i = 0; i < numOfUsers; i++) {
     //     users.push({
@@ -77,53 +79,54 @@ export function generateInitialState() {
     const eventId = 'abcdefg';
     const ticketId = 'hijklmn';
 
-    events.push({
+    items[eventId] = {
         id: eventId,
         model: 'event',
         name: 'test event',
         startDateTime: 1456970400000,
         endDateTime: 1456992000000,
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-        venueID: venueId
-    });
+        venueID: venueId,
+        hash: generateId()
+    };
 
-    venues.push({
+    items[venueId] = {
         id: venueId,
         model: 'venue',
         name: 'The Aragon Ballroom',
         address: '1106 W Lawrence Ave, Chicago, IL 60640',
-        phoneNumber: 2241239876
-    });
+        phoneNumber: 2241239876,
+        hash: generateId()
+    };
 
-    tickets.push({
+    items[ticketId] = {
         id: ticketId,
         model: 'ticket',
         ticketType: 'general',
-        eventID: eventId
-    });
+        eventID: eventId,
+        hash: generateId()
+    };
 
     for(let i = 0; i < 20; i++){
         const orderType = randomBuyOrSell();
+        const id = generateId();
 
-        orders.push({
-            id: generateId(),
+        items[id] = {
+            id,
             model: 'order',
             orderType: orderType,
             price: orderType == "buy" ? randomFloat(minPrice, medianPrice) : randomFloat(medianPrice, maxPrice),
             userID: generateId(),
-            ticketID: ticketId
-        });
+            ticketID: ticketId,
+            hash: generateId()
+        };
     }
 
-    winston.debug(typeof(randomFloat(1000, 1200)));
     winston.debug('Generated seed');
 
     return fromJS({
-        venues: venues,
-        orders: orders,
-        tickets: tickets,
-        events: events,
-        users: users
+        items,
+        groups
     });
 
     // return fromJS({});

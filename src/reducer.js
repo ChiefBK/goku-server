@@ -1,75 +1,32 @@
 import {combineReducers} from 'redux-immutable';
 import {
-    INITIAL_STATE
+    INITIAL_STATE_MAP
 } from './core';
 
-function events(eventState = INITIAL_STATE, action) {
+function items(itemState = INITIAL_STATE_MAP, action) {
     switch (action.type) {
-        case 'CREATE_EVENT':
-            return eventState.push(action.item);
-        case 'READ_EVENT':
-        case 'UPDATE_EVENT':
-        case 'DELETE_EVENT':
-        case 'SET_EVENTS':
+        case 'CREATE_ITEM':
+            return itemState.set(action.item.id, action.item);
+        case 'UPDATE_ITEM':
+        case 'DELETE_ITEM':
     }
 
-    return eventState;
+    return itemState;
 }
 
-function venues(venueState = INITIAL_STATE, action) {
+function groups(groupState = INITIAL_STATE_MAP, action) {
     switch (action.type) {
-        case 'CREATE_VENUE':
-            return venueState.push(action.item);
-        case 'READ_VENUE':
-        case 'UPDATE_VENUE':
-        case 'DELETE_VENUE':
-        case 'SET_VENUES':
+        case 'CREATE_GROUP':
+        case 'CREATE_GROUP':
+        case 'CREATE_GROUP':
     }
 
-    return venueState;
-}
-
-function tickets(ticketState = INITIAL_STATE, action) {
-    switch (action.type) {
-        case 'CREATE_TICKET':
-            return ticketState.push(action.item);
-        case 'READ_TICKET':
-        case 'UPDATE_TICKET':
-        case 'DELETE_TICKET':
-    }
-
-    return ticketState;
-}
-
-function orders(orderState = INITIAL_STATE, action) {
-    switch (action.type) {
-        case 'CREATE_ORDER':
-            return orderState.push(action.item);
-        case 'READ_ORDER':
-        case 'UPDATE_ORDER':
-        case 'DELETE_ORDER':
-    }
-
-    return orderState;
-}
-
-function users(userState = INITIAL_STATE, action) {
-    switch(action.type) {
-        case 'CREATE_USER':
-        case 'READ_USER':
-        case 'UPDATE_USER':
-        case 'DELETE_USER':
-    }
-
-    return userState;
+    return groupState;
 }
 
 const reducers = combineReducers({
-    events,
-    tickets,
-    orders,
-    users,
-    venues
+    items,
+    groups
 });
 
 export default reducers;

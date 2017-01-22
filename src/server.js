@@ -43,9 +43,9 @@ export function startServer(store, client_dist) {
 
             socket.emit('state', store.getState().toJS());
 
-            socket.on('read', (request) => {
-                winston.debug(`Received read event: ${pretty(request)}`);
-                store.dispatch(handleRead(socket, request));
+            socket.on('read', (event) => {
+                winston.debug(`Received read event: ${pretty(event)}`);
+                store.dispatch(handleRead(socket, event));
 
             });
 
