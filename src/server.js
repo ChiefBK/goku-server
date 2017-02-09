@@ -6,7 +6,7 @@ import Morgan from 'morgan';
 import winston from 'winston';
 import {fromJS} from 'immutable';
 
-import {handleRead, handleCreate} from './action';
+import {handleQuery, handleCreate, handleRead, handleUpdate, handleDelete} from './action';
 import {readOrders} from './core';
 import {pretty} from './util';
 
@@ -37,7 +37,6 @@ export function startServer(store, client_dist) {
             // io.emit('state', store.getState().toJS());
         });
 
-        //TODO - convert request to immutable map
         io.on('connection', (socket) => {
             winston.debug(`New connection on socket: ${socket.id}`);
 
@@ -45,24 +44,30 @@ export function startServer(store, client_dist) {
 
             socket.on('read', (event) => {
                 winston.debug(`Received read event: ${pretty(event)}`);
-                store.dispatch(handleRead(socket, event));
+                store.dispatch(handleRead(socket, event))
+            });
+
+            socket.on('query', (event) => {
+                winston.debug(`Received query event: ${pretty(event)}`);
+                store.dispatch(handleQuery(socket, event));
 
             });
 
-            socket.on('create', (request) => {
-                winston.debug(`Received create event: ${pretty(request)}`);
-                store.dispatch(handleCreate(io, socket, fromJS(request)));
-            });
-
-            socket.on('update', (request) => {
-                winston.debug(`Received update event: ${pretty(request)}`);
-
+            socket.on('create', (event) => {
+                winston.debug(`Received create event: ${pretty(event)}`);
+                store.dispatch(handleCreate(io, socket, event));
 
             });
 
-            socket.on('delete', (request) => {
-                winston.debug(`Received delete event: ${pretty(request)}`);
+            socket.on('update', (event) => {
+                winston.debug(`Received update event: ${pretty(event)}`);
+                store.dispatch(handleUpdate(io, socket, event));
 
+            });
+
+            socket.on('delete', (event) => {
+                winston.debug(`Received delete event: ${pretty(event)}`);
+                store.dispatch(handleDelete(io, socket, event));
             });
 
         });

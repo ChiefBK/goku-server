@@ -3,7 +3,9 @@ import {generateId} from '../seed';
 import pluralize from 'pluralize';
 import Promise from 'bluebird';
 import winston from 'winston';
-import {pretty} from './util';
+import {pretty, generateHash} from './util';
+import Item from './item';
+import Group from './group';
 
 export const INITIAL_STATE_MAP = Map();
 
@@ -14,8 +16,8 @@ function indexById(iterable) {
     );
 }
 
-function readFromState(query, state) {
-    winston.debug(`Reading from state with query ${pretty(query)}`);
+function queryState(query, state) {
+    winston.silly(`Reading from state with query ${pretty(query)}`);
     return state.get(pluralize(query.model)).filter((item) => {
         winston.silly(`Testing query against item ${pretty(item.toJS())}`);
         let isMatching = true;
@@ -26,7 +28,7 @@ function readFromState(query, state) {
                 isMatching = false;
                 break;
             }
-            else if(key == 'hash' && item.get(key) == query['properties'][key]) {
+            else if (key == 'hash' && item.get(key) == query['properties'][key]) {
 
             }
         }
@@ -35,88 +37,140 @@ function readFromState(query, state) {
     });
 }
 
-function getById(id, state) {
+export function getItem(state, id, hash = '') {
     winston.debug("Getting by id: " + id);
     const item = state.getIn(['items', id]);
-    if (item == null){
-        return List();
+    if (!item || item.get('hash') == hash) {
+        return new Item();
     }
-    else{
-        return List([item]);
+    else {
+        return new Item(item);
     }
-
-    return state.getIn(['items', id]);
 }
 
-function getByIdAndHash(id, hash, state){
-    winston.debug("Getting by id: " + id + " and hash: " + hash);
-    const item = state.getIn(['items', id]);
+export function getGroup(state, groupId, hash=''){
+    const group = state.getIn(['groups', groupId]);
 
-    if (item == null || item.get('hash') == hash){
-        return List();
+    if(!group || group.get('hash') == hash){
+        return new Group();
     }
     else{
-        return List([item]);
+        return new Group(group);
     }
-
 }
 
-function getInnerObjects(results, state, levels = 0, queue = []) {
+export function getInnerObjects(results, state, levels = 0, queue = []) {
     if (results === undefined || results.size == 0) {
         return List();
     }
 
     let lastResult = results.last();
-    if(!lastResult.get('visited', false)){ //If lastResult does not have 'visited' attribute
-        lastResult.keySeq().forEach((key) => {
-            if(key.includes('ID')){
-                let model = key.split('ID')[0];
-                queue.push({
-                    id: lastResult.get(key),
-                    model: model
-                });
-            }
+    winston.silly(`last result: ${pretty(lastResult.toJS())}`);
+    if (!lastResult.has('visited')) { //If lastResult does not have 'visited' attribute
+        lastResult.referencingItemKeys().forEach((key) => {
+            winston.silly("pushing " + lastResult.get(key) + " to queue");
+            queue.push(lastResult.get(key));
         });
 
         lastResult.set('visited', true);
     }
 
-    if(queue.length == 0 || levels == 1){
+    if (queue.length == 0 || levels == 1) {
         return results;
     }
 
-    winston.silly(`Results ${pretty(results.toJS())}`);
-    let newResults = results.push(getById(queue[0]['id'], state).first());
-    winston.silly(`New Results ${pretty(newResults.toJS())}`);
+    const newItem = getItem(state, queue[0]);
+    winston.silly(`Pushing item ${pretty(newItem.toJS())} to results`);
+    let newResults = results.push(newItem);
     queue.shift();
     return getInnerObjects(newResults, state, --levels, queue);
 }
 
-export function retrieveQuery(query, state) {
-    return new Promise((resolve, reject) => {
-        let firstRoundResults;
-        if (isGetByIdQuery(query)){
-            firstRoundResults = getById(query.properties.id, state);
-        }
-        else if (isGetByIdAndHashQuery(query)) {
-            firstRoundResults = getByIdAndHash(query.properties.id, query.properties.hash, state);
-        }
-        else{
-            firstRoundResults = readFromState(query, state);
-        }
-        winston.silly(`results after first round had length of ${firstRoundResults.size}`);
-        winston.silly(`first round results: ${pretty(firstRoundResults.toJS())}`);
+export function getQuery(query, state) {
+    return new Promise((resolve, reject) => { //TODO - remove promise - simply return results
+        let rootResults = queryState(query, state);
+        winston.silly(`results after first round had length of ${rootResults.size}`);
+        winston.silly(`first round results: ${pretty(rootResults.toJS())}`);
 
-        let allResults = getInnerObjects(firstRoundResults, state, 'levels' in query ? query.levels : undefined);
+        let allResults = getInnerObjects(rootResults, state, 'levels' in query ? query.levels : undefined);
 
         resolve(allResults);
     });
 }
 
-function isGetByIdQuery(query){
-    return 'id' in query['properties'] && Object.keys(query['properties']).length == 1
+export function getGroupAndItems(state, id, socket, hash = '') {
+    winston.debug('Getting group by id: ' + id);
+    const group = state.getIn(['groups', id]);
+    winston.silly('found group: ' + pretty(group.toJS()));
+
+    //TODO - handle if group does not exist
+
+    if (group.get('hash') == hash) {
+        return List();
+    }
+    else {
+        const results = [];
+        group.set('hash', generateId());
+        results.push(group);
+        winston.silly('pushed group. results now: ' + pretty(results));
+        group.get('items').forEach((id) => {
+            results.push(getItem(id, state))
+        });
+        winston.silly('pushed items. results now: ' + pretty(results));
+        return List(results);
+    }
 }
 
-function isGetByIdAndHashQuery(query) {
-    return 'id' in query['properties'] && 'hash' in query['properties'] && Object.keys(query['properties']).length == 2
+export function getItemsOfGroup(state, groupId){
+    const globalItems = state.get('items');
+
+    return globalItems.filter((item) => {
+        return item.get('_groupId_') == groupId;
+    });
+}
+
+export function createGroupObject(){
+    return new Map({
+        id: generateId(),
+        model: 'group',
+        hash: generateHash(),
+        room: generateHash()
+    });
+}
+
+export function createCreateEvent(eventId, payload){
+    let eventPayload;
+    if(Array.isArray(payload)){
+        eventPayload = payload;
+    }
+    else if (Map.isMap(payload)){
+        eventPayload = [payload.toJS()];
+    }
+    else if (List.isList(payload)){
+        eventPayload = payload.toJS();
+    }
+    else{
+        eventPayload = [payload];
+    }
+
+    return {
+        eventId,
+        payload: eventPayload
+    }
+}
+
+export function createUpdateEvent(eventId, payload){
+    return {
+        eventId,
+        payload
+    }
+}
+
+export function createDeleteEvent(eventId, itemId){
+    return {
+        eventId,
+        payload: {
+            id: itemId
+        }
+    }
 }
