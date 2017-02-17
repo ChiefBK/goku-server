@@ -1,21 +1,18 @@
 import {handleError} from './error';
 import {
-    getQuery,
-    getItemsOfGroup,
     getItem,
     getGroup,
     createGroupObject,
-    createCreateEvent,
     createUpdateEvent,
     createDeleteEvent,
-    getInnerObjects
+    queryState
 } from './core';
 import {Map, List, toJS} from 'immutable';
 import winston from 'winston';
 import {pretty, generateHash} from './util';
 import {generateId} from '../seed';
-import Event from './event';
-import Item from './item';
+import Event from './models/event';
+import Item from './models/item';
 
 function createOrUpdateItem(item) {
     return {
@@ -111,10 +108,11 @@ export function handleRead(socket, event) {
         }
         socket.join(item.get('room'));
 
-        const allItems = getInnerObjects(List.of(item), getState());
-        winston.silly('all items');
-        winston.silly(pretty(allItems.toJS()));
-        outboundEvent.payload = allItems.toJS();
+        // const referencedItems = getInnerObjects(List.of(item), getState());
+        const referencedItems = item.referencingItems(getState(), event.levels);
+        winston.silly('referenced items');
+        winston.silly(pretty(referencedItems.toJS()));
+        outboundEvent.concatPayload(referencedItems);
 
         //TODO - handle groups (for tickets)
         // if (item.groupId) {
@@ -135,13 +133,17 @@ export function handleRead(socket, event) {
 
 export function handleQuery(socket, event) {
     return function (dispatch, getState) {
-        getQuery(event.query, getState()).then((payload) => {
-            winston.debug(`Sending payload: ${pretty(payload.toJS())}`);
-            socket.emit('create', {
-                id: event.id,
-                payload: payload.toJS()
-            });
+        const levels = event.levels;
+        const outboundEvent = new Event(event.eventId);
+
+        let rootResults = queryState(getState(), event.query);
+        outboundEvent.concatPayload(rootResults);
+        rootResults.forEach((item) => {
+            outboundEvent.concatPayload(item.referencingItems(getState(), levels))
         });
+
+        winston.debug(`Sending payload: ${pretty(outboundEvent.toObject())}`);
+        socket.emit('create', outboundEvent.toObject());
     };
 }
 

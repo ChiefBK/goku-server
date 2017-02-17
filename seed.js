@@ -1,6 +1,8 @@
-import {fromJS} from 'immutable';
+import {fromJS, Map} from 'immutable';
 import winston from 'winston';
 import {generateHash} from './src/util';
+import Item from './src/models/item';
+import Group from './src/models/group';
 
 const numOfEvents = 5;
 const numOfVenues = 3;
@@ -25,8 +27,8 @@ export function generateInitialState() {
     let tickets = [];
     let orders = [];
     let users = [];
-    let items = {};
-    let groups = {};
+    let items = Map();
+    let groups = Map();
 
     // for (let i = 0; i < numOfUsers; i++) {
     //     users.push({
@@ -81,7 +83,7 @@ export function generateInitialState() {
     const ticketId = 'hijklmn';
     const groupId = generateId();
 
-    items[eventId] = {
+    items = items.set(eventId, new Item({
         id: eventId,
         model: 'event',
         name: 'test event',
@@ -91,9 +93,9 @@ export function generateInitialState() {
         venueId_: venueId,
         hash: generateHash(),
         room: generateHash()
-    };
+    }));
 
-    items[venueId] = {
+    items = items.set(venueId, new Item({
         id: venueId,
         model: 'venue',
         name: 'The Aragon Ballroom',
@@ -102,30 +104,30 @@ export function generateInitialState() {
         hash: generateHash(),
         room: generateHash()
 
-    };
+    }));
 
-    items[ticketId] = {
+    items = items.set(ticketId, new Item({
         id: ticketId,
         model: 'ticket',
         ticketType: 'general',
         eventId_: eventId,
         hash: generateHash(),
-        group: groupId,
+        groupId: groupId,
         room: generateHash()
-    };
+    }));
 
-    groups[groupId] = {
+    groups = groups.set(groupId, new Group({
         id: groupId,
         hash: generateHash(),
         model: 'group',
         room: generateHash()
-    };
+    }));
 
     for(let i = 0; i < 20; i++){
         const orderType = randomBuyOrSell();
         const id = generateId();
 
-        items[id] = {
+        items = items.set(id, new Item({
             id,
             model: 'order',
             orderType: orderType,
@@ -133,12 +135,13 @@ export function generateInitialState() {
             userId_: generateId(),
             ticketId_: ticketId,
             hash: generateHash()
-        };
+        }));
     }
 
     winston.debug('Generated seed');
 
-    return fromJS({
+    //TODO - store using item and group classes
+    return Map({
         items,
         groups
     });

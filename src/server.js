@@ -5,6 +5,7 @@ import Express from 'express';
 import Morgan from 'morgan';
 import winston from 'winston';
 import {fromJS} from 'immutable';
+import session from 'express-session';
 
 import {handleQuery, handleCreate, handleRead, handleUpdate, handleDelete} from './action';
 import {readOrders} from './core';
