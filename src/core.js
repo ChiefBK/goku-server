@@ -19,10 +19,8 @@ export function queryState(state, query) {
 export function getItem(state, id, hash = '') {
     winston.silly("Getting by id: " + id);
     const item = state.getIn(['items', id]);
-    if (!item || item.get('hash') == hash) {
-        return new Item();
-    }
-    else {
+
+    if (item && item.get('hash') != hash) {
         return new Item(item);
     }
 }
@@ -30,10 +28,7 @@ export function getItem(state, id, hash = '') {
 export function getGroup(state, groupId, hash=''){
     const group = state.getIn(['groups', groupId]);
 
-    if(!group || group.get('hash') == hash){
-        return new Group();
-    }
-    else{
+    if(group && group.get('hash') != hash){
         return new Group(group);
     }
 }

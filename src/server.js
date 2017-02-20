@@ -7,7 +7,7 @@ import winston from 'winston';
 import {fromJS} from 'immutable';
 import session from 'express-session';
 
-import {handleQuery, handleCreate, handleRead, handleUpdate, handleDelete} from './action';
+import {handleQuery, handleCreate, handleRead, handleUpdate, handleDelete, handleAuth} from './action';
 import {readOrders} from './core';
 import {pretty} from './util';
 
@@ -69,6 +69,11 @@ export function startServer(store, client_dist) {
             socket.on('delete', (event) => {
                 winston.debug(`Received delete event: ${pretty(event)}`);
                 store.dispatch(handleDelete(io, socket, event));
+            });
+
+            socket.on('auth', (event) => {
+                winston.debug(`Received auth event: ${pretty(event)}`);
+                store.dispatch(handleAuth(io, socket, event));
             });
 
         });

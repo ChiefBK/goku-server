@@ -7,7 +7,7 @@ import {pretty} from '../util';
 
 class Item extends MapExtendable {
     get groupId() {
-        return this.get('groupId_');
+        return this.get('groupId');
     }
 
     referencingItemKeys() {

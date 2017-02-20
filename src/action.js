@@ -65,7 +65,7 @@ export function handleCreate(io, socket, event) {
             let room = generateHash();
             const outputEvent = new Event(event.eventId);
 
-            if(item.model == 'ticket'){
+            if (item.model == 'ticket') {
                 const group = createGroupObject();
                 item.room = room;
                 item.group = group.id;
@@ -75,14 +75,17 @@ export function handleCreate(io, socket, event) {
             }
             if (item.model == 'order') {
                 const ticket = getItem(getState(), item.ticketId_);
-                const group = getGroup(getState(), ticket.get('group'));
+                const group = getGroup(getState(), ticket.get('groupId'));
                 dispatch(regenerateGroupHash(group.get('id')));
+                const groupWithNewHash = getGroup(getState(), ticket.get('groupId'));
+                outputEvent.appendPayload(groupWithNewHash);
                 room = group.get('room');
             }
             else {
                 item.room = room;
             }
 
+            item.id = generateId();
             socket.join(room);
             dispatch(createOrUpdateItem(item));
             outputEvent.appendPayload(item);
@@ -103,8 +106,15 @@ export function handleRead(socket, event) {
         const outboundEvent = new Event(event.eventId);
 
         const item = getItem(getState(), event.id, event.hash);
-        if (!item.isEmpty()) {
-            outboundEvent.appendPayload(item.toJS());
+        if (item) {
+            outboundEvent.appendPayload(item);
+
+            if (item.groupId) { //If has group (e.g. ticket)
+                const group = getGroup(getState(), item.groupId);
+                if (group) {
+                    outboundEvent.appendPayload(group);
+                }
+            }
         }
         socket.join(item.get('room'));
 
@@ -187,7 +197,20 @@ export function handleDelete(io, socket, event) {
     }
 }
 
-function sendEvent(event, eventType, socket) {
-    winston.debug("Sending event: " + pretty(event));
-    socket.emit(eventType, event);
+export function handleAuth(io, socket, event) {
+    return function (dispatch, getState) {
+        const outgoingEvent = new Event(event.eventId);
+        const state = getState();
+
+        const userEmail = event.email;
+        const userPassHash = event.passwordHash;
+
+        const user = state.get('items').find((item) => {
+            return item.get('email') == userEmail && item.get('passwordHash') == userPassHash;
+        });
+        outgoingEvent.appendPayload(user);
+
+        socket.emit('auth', outgoingEvent.toObject());
+        socket.emit('create', outgoingEvent.toObject());
+    }
 }

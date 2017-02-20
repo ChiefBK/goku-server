@@ -3,6 +3,7 @@ import winston from 'winston';
 import {generateHash} from './src/util';
 import Item from './src/models/item';
 import Group from './src/models/group';
+import sha512 from 'js-sha512';
 
 const numOfEvents = 5;
 const numOfVenues = 3;
@@ -78,10 +79,21 @@ export function generateInitialState() {
     //         user: users[i % users.length].id
     //     });
     // }
-    let venueId = generateId();
+    const venueId = generateId();
     const eventId = 'abcdefg';
     const ticketId = 'hijklmn';
     const groupId = generateId();
+    const userId = 'opqrstuvw';
+    const userPass = '012345';
+
+    items = items.set(userId, new Item({
+        id: userId,
+        model: 'user',
+        email: 'testemail@aol.com',
+        lastName: 'smith',
+        firstName: 'barry',
+        passwordHash: sha512(userPass)
+    }));
 
     items = items.set(eventId, new Item({
         id: eventId,
