@@ -1,9 +1,8 @@
-import {fromJS, Map} from 'immutable';
-import winston from 'winston';
-import {generateHash} from './src/util';
-import Item from './src/models/item';
-import Group from './src/models/group';
-import sha512 from 'js-sha512';
+import {Map} from "immutable";
+import winston from "winston";
+import {generateHash} from "./src/util";
+import {Item} from "en3-common";
+import sha512 from "js-sha512";
 
 const numOfEvents = 5;
 const numOfVenues = 3;
@@ -29,7 +28,6 @@ export function generateInitialState() {
     let orders = [];
     let users = [];
     let items = Map();
-    let groups = Map();
 
     // for (let i = 0; i < numOfUsers; i++) {
     //     users.push({
@@ -82,17 +80,81 @@ export function generateInitialState() {
     const venueId = generateId();
     const eventId = 'abcdefg';
     const ticketId = 'hijklmn';
-    const groupId = generateId();
-    const userId = 'opqrstuvw';
+    const normalUserId = 'opqrstuvw';
+    const clientUserId = 'zxcvbnm';
+    const userIds = [generateId(), generateId(), generateId(), generateId()];
     const userPass = '012345';
 
-    items = items.set(userId, new Item({
-        id: userId,
+    items = items.set(userIds[0], new Item({
+        id: userIds[0],
+        model: 'user',
+        email: 'user0@comcast.net',
+        lastName: 'spankers',
+        firstName: 'dick',
+        passwordHash: sha512(userPass),
+        classification: 'patron',
+        hash: generateHash(),
+        room: generateHash()
+    }));
+
+    items = items.set(userIds[1], new Item({
+        id: userIds[1],
+        model: 'user',
+        email: 'user1@comcast.net',
+        lastName: 'tranker',
+        firstName: 'bill',
+        passwordHash: sha512(userPass),
+        classification: 'patron',
+        hash: generateHash(),
+        room: generateHash()
+    }));
+
+    items = items.set(userIds[2], new Item({
+        id: userIds[2],
+        model: 'user',
+        email: 'user2@comcast.net',
+        firstName: 'ashley',
+        lastName: 'lester',
+        passwordHash: sha512(userPass),
+        classification: 'patron',
+        hash: generateHash(),
+        room: generateHash()
+    }));
+
+    items = items.set(userIds[3], new Item({
+        id: userIds[3],
+        model: 'user',
+        email: 'user3@comcast.net',
+        firstName: 'kelly',
+        lastName: 'hester',
+        passwordHash: sha512(userPass),
+        classification: 'patron',
+        hash: generateHash(),
+        room: generateHash()
+    }));
+
+    items = items.set(clientUserId, new Item({
+        id: clientUserId,
+        model: 'user',
+        email: 'thickness@gmail.com',
+        lastName: 'thicke',
+        firstName: 'alan',
+        passwordHash: sha512(userPass),
+        classification: 'client',
+        hash: generateHash(),
+        room: generateHash()
+    }));
+
+    items = items.set(normalUserId, new Item({
+        id: normalUserId,
         model: 'user',
         email: 'testemail@aol.com',
         lastName: 'smith',
         firstName: 'barry',
-        passwordHash: sha512(userPass)
+        passwordHash: sha512(userPass),
+        classification: 'patron',
+        hash: generateHash(),
+        room: generateHash()
     }));
 
     items = items.set(eventId, new Item({
@@ -124,29 +186,24 @@ export function generateInitialState() {
         ticketType: 'general',
         eventId_: eventId,
         hash: generateHash(),
-        groupId: groupId,
         room: generateHash()
     }));
 
-    groups = groups.set(groupId, new Group({
-        id: groupId,
-        hash: generateHash(),
-        model: 'group',
-        room: generateHash()
-    }));
-
-    for(let i = 0; i < 20; i++){
+    for (let i = 0; i < 20; i++) {
         const orderType = randomBuyOrSell();
         const id = generateId();
+        const status = randomStatus();
 
         items = items.set(id, new Item({
             id,
             model: 'order',
             orderType: orderType,
-            price: orderType == "buy" ? randomFloat(minPrice, medianPrice) : randomFloat(medianPrice, maxPrice),
-            userId_: generateId(),
+            status: status,
+            price: status === 'active' ? orderType === "buy" ? randomFloat(minPrice, medianPrice) : randomFloat(medianPrice, maxPrice) : '',
+            userId_: orderType == 'buy' ? userIds[i % 4] : clientUserId,
             ticketId_: ticketId,
-            hash: generateHash()
+            hash: generateHash(),
+            room: generateHash()
         }));
     }
 
@@ -154,8 +211,7 @@ export function generateInitialState() {
 
     //TODO - store using item and group classes
     return Map({
-        items,
-        groups
+        items
     });
 
     // return fromJS({});
@@ -181,12 +237,23 @@ function randomFloat(min, max) {
 }
 
 function randomBuyOrSell() {
-    let rand = Math.random();
+    const rand = Math.random();
 
     if (rand < 0.5) {
         return "sell";
     }
     else {
         return "buy";
+    }
+}
+
+function randomStatus() {
+    const rand = Math.random();
+
+    if (rand < 0.5) {
+        return 'active';
+    }
+    else {
+        return 'idle'
     }
 }

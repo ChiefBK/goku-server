@@ -18,22 +18,8 @@ function items(itemState = INITIAL_STATE_MAP, action) {
     return itemState;
 }
 
-function groups(groupState = INITIAL_STATE_MAP, action) {
-    switch (action.type) {
-        case 'CREATE_GROUP':
-            return groupState.set(action.group.id, fromJS(action.group));
-        case 'UPDATE_GROUP':
-        case 'DELETE_GROUP':
-        case 'REGENERATE_GROUP_HASH':
-            return groupState.setIn([action.groupId, 'hash'], generateHash());
-    }
-
-    return groupState;
-}
-
 const reducers = combineReducers({
-    items,
-    groups
+    items
 });
 
 export default reducers;
