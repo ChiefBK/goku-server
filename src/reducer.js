@@ -3,12 +3,15 @@ import {
     INITIAL_STATE_MAP
 } from './core';
 import {fromJS} from 'immutable';
-import {generateHash} from './util';
+import {generateHash, pretty} from './util';
+import winston from 'winston';
+import {Item} from 'en3-common';
 
 function items(itemState = INITIAL_STATE_MAP, action) {
     switch (action.type) {
         case 'CREATE_UPDATE_ITEM':
-            return itemState.set(action.item.id, fromJS(action.item));
+            winston.silly(`Creating item: ${pretty(action.item)}`);
+            return itemState.set(action.item.id, new Item(action.item));
         case 'DELETE_ITEM':
             return itemState.delete(action.itemId);
         case 'REGENERATE_ITEM_HASH':

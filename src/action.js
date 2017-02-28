@@ -1,12 +1,15 @@
-import {createUpdateEvent, createDeleteEvent} from "./core";
-import {getItem, queryState} from 'en3-common';
-import {toJS} from "immutable";
+import {createDeleteEvent} from "./core";
+import {getItem, queryState, Event} from "en3-common";
+import {Map, toJS} from "immutable";
 import winston from "winston";
 import {pretty, generateHash} from "./util";
 import {generateId} from "../seed";
-import {Event} from "en3-common";
 
 function createOrUpdateItem(item) {
+    if (Map.isMap(item)) {
+        item = item.toJS();
+    }
+
     return {
         type: 'CREATE_UPDATE_ITEM',
         item
@@ -76,7 +79,7 @@ export function handleRead(socket, event) {
         winston.silly(pretty(referencedItems.toJS()));
         outboundEvent.concatPayload(referencedItems);
 
-        for(let i in outboundEvent.payload){
+        for (let i in outboundEvent.payload) {
             const item = outboundEvent.payload[i];
             socket.join(item.room);
         }
@@ -97,7 +100,7 @@ export function handleQuery(socket, event) {
             outboundEvent.concatPayload(item.referencingItems(getState(), levels))
         });
 
-        for(let i in outboundEvent.payload){
+        for (let i in outboundEvent.payload) {
             const item = outboundEvent.payload[i];
             socket.join(item.room);
         }
@@ -117,9 +120,9 @@ export function handleUpdate(io, socket, event) {
 
         dispatch(regenerateItemHash(item.get('id')));
         dispatch(createOrUpdateItem(updatedItem));
-        winston.debug(`Item was ${pretty(item.toJS())}; Updated item is ${pretty(updatedItem.toJS())}`);
+        winston.silly(`Item was ${pretty(item.toJS())}; Updated item is ${pretty(updatedItem.toJS())}`);
         outboundEvent.appendPayload(payload);
-        winston.debug(`Sending update payload to room: ${item.get('room')}`);
+        winston.silly(`Sending update payload to room: ${item.get('room')}`);
         io.to(item.get('room')).emit('update', outboundEvent.toObject()); //TODO - use update (send diff) instead of entire object
     }
 }
