@@ -1,13 +1,24 @@
 import {createStore, applyMiddleware} from 'redux';
 import {generateInitialState} from '../seed';
 import thunk from 'redux-thunk';
+import {combineReducers} from 'redux-immutable';
+import {eventReducer, userReducer} from 'en3-common';
+import {Map} from 'immutable';
 
-import reducer from './reducer';
+
+const reducers = combineReducers({
+    events: eventReducer,
+    users: userReducer
+});
 
 export default function makeStore() {
-    return createStore(
-        reducer,
-        generateInitialState(),
+    const store = createStore(
+        reducers,
+        Map(),
         applyMiddleware(thunk)
     );
+
+    generateInitialState(store);
+
+    return store;
 }

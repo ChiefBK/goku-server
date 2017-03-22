@@ -1,11 +1,10 @@
-import SocketIO from 'socket.io';
-import http from 'http';
-import Express from 'express';
-import Morgan from 'morgan';
-import winston from 'winston';
-
-import {handleQuery, handleCreate, handleRead, handleUpdate, handleDelete, handleAuth} from './action';
-import {pretty} from './util';
+import SocketIO from "socket.io";
+import http from "http";
+import Express from "express";
+import Morgan from "morgan";
+import winston from "winston";
+import {handleCreateEvent, handleCreateUser, handleReadEvent, handleReadUser, handleAuth} from "en3-common";
+import {pretty} from "./util";
 
 export function startServer(store, client_dist) {
     const app = Express();
@@ -37,39 +36,29 @@ export function startServer(store, client_dist) {
         io.on('connection', (socket) => {
             winston.debug(`New connection on socket: ${socket.id}`);
 
-            socket.emit('state', store.getState().toJS());
-
-            socket.on('read', (event) => {
-                winston.debug(`Received read event: ${pretty(event)}`);
-                store.dispatch(handleRead(socket, event))
+            socket.on('read-user', (event) => {
+                winston.debug(`Received read-user event: ${pretty(event)}`);
+                store.dispatch(handleReadUser(event, socket, io))
             });
 
-            socket.on('query', (event) => {
-                winston.debug(`Received query event: ${pretty(event)}`);
-                store.dispatch(handleQuery(socket, event));
-
+            socket.on('read-event', (event) => {
+                winston.debug(`Received read-event event: ${pretty(event)}`);
+                store.dispatch(handleReadEvent(event, socket, io));
             });
 
-            socket.on('create', (event) => {
-                winston.debug(`Received create event: ${pretty(event)}`);
-                store.dispatch(handleCreate(io, socket, event));
-
+            socket.on('create-event', (event) => {
+                winston.debug(`Received create-event event: ${pretty(event)}`);
+                store.dispatch(handleCreateEvent(event, socket, io));
             });
 
-            socket.on('update', (event) => {
-                winston.debug(`Received update event: ${pretty(event)}`);
-                store.dispatch(handleUpdate(io, socket, event));
-
-            });
-
-            socket.on('delete', (event) => {
-                winston.debug(`Received delete event: ${pretty(event)}`);
-                store.dispatch(handleDelete(io, socket, event));
+            socket.on('create-user', (event) => {
+                winston.debug(`Received create-event event: ${pretty(event)}`);
+                store.dispatch(handleCreateUser(event, socket, io));
             });
 
             socket.on('auth', (event) => {
                 winston.debug(`Received auth event: ${pretty(event)}`);
-                store.dispatch(handleAuth(io, socket, event));
+                store.dispatch(handleAuth(event, socket, io));
             });
 
         });
