@@ -19,18 +19,6 @@ export function generateInitialState(store) {
     const clientId = 'qwertyuiop';
     const userPass = '012345';
 
-    for (let i = 0; i < userIds.length; i++) {
-        store.dispatch(createUser(userIds[i], userFirstNames[i % userFirstNames.length], userLastNames[i % userLastNames.length], userEmails[i % userEmails.length], sha512(userPass), 'patron'));
-
-        for (let j = 0; j < 3; j++) {
-            store.dispatch(createOrder(generateId(), 'buy', 20, 'active', eventIds[0], ticketIds[0], userIds[i]));
-        }
-
-        store.dispatch(createOrder(generateId(), 'sell', 48, 'active', eventIds[0], ticketIds[0], userIds[i]));
-        store.dispatch(createOrder(generateId(), 'sell', undefined, 'inactive', eventIds[0], ticketIds[0], userIds[i]));
-
-    }
-
     store.dispatch(createUser(clientId, 'sean', 'spicy', 'thickness@gmail.com', sha512(userPass), 'client'));
 
     for (let i = 0; i < eventIds.length; i++) {
@@ -47,6 +35,17 @@ export function generateInitialState(store) {
         }
     }
 
+    for (let i = 0; i < userIds.length; i++) {
+        store.dispatch(createUser(userIds[i], userFirstNames[i % userFirstNames.length], userLastNames[i % userLastNames.length], userEmails[i % userEmails.length], sha512(userPass), 'patron'));
+
+        for (let j = 0; j < 3; j++) {
+            store.dispatch(createOrder(generateId(), 'buy', 20, 'active', eventIds[0], ticketIds[0], userIds[i]));
+        }
+
+        store.dispatch(createOrder(generateId(), 'sell', 48, 'active', eventIds[0], ticketIds[0], userIds[i]));
+        store.dispatch(createOrder(generateId(), 'sell', undefined, 'inactive', eventIds[0], ticketIds[0], userIds[i]));
+
+    }
 
 }
 
