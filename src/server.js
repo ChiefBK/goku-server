@@ -3,7 +3,8 @@ import http from "http";
 import Express from "express";
 import Morgan from "morgan";
 import winston from "winston";
-import {handleCreateEvent, handleCreateUser, handleReadEvent, handleReadUser, handleAuth} from "en3-common";
+import {handleCreateEvent, handleCreateUser, handleReadEvent, handleReadUser} from "en3-common";
+import {handleAuth} from "./actions/auth";
 import {pretty} from "./util";
 
 export function startServer(store, client_dist) {
